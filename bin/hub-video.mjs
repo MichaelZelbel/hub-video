@@ -269,8 +269,9 @@ function stepProof(cfg) {
   fs.mkdirSync(dir, { recursive: true });
   const clip = path.join(dir, "sample-vertical.mp4");
   fs.copyFileSync(path.join(PKG_ROOT, "sample", "sample-vertical.mp4"), clip);
-  const capStatus = cfg.python && cfg.ffmpeg ? runTool(cfg, "captions", [clip, "--language", "en"]) : 1;
+  const capStatus = cfg.python && cfg.ffmpeg ? runTool(cfg, "captions", [clip, "--language", "en"]) : null;
   if (capStatus === 0) ok(`captions: open ${path.join(dir, "sample-vertical.captioned.mp4")} and watch 8 seconds`);
+  else if (capStatus === null) warn("captions need ffmpeg and the speech model (see above), so they were not tried.");
   else warn("captions did not finish (see above).");
 
   if (!cfg.ffmpeg) {
