@@ -286,8 +286,13 @@ function stepProof(cfg) {
   L.copyDir(path.join(PKG_ROOT, "sample", "title-card"), card);
   const out = path.join(dir, "title-card.mp4");
   console.log(`   Rendering with HyperFrames ${L.HYPERFRAMES_VERSION}; the first render downloads a browser it draws with (about 150 MB)...`);
+  // The render runs on the Node that runs this setup, which is known to be new enough. The
+  // folder ffmpeg lives in goes LAST: on Linux that is /usr/bin, which can also hold an old
+  // system Node that would otherwise be found first (it was, on the reader test machine).
   const env = { ...process.env };
-  if (cfg.ffmpeg && path.isAbsolute(cfg.ffmpeg)) env.PATH = path.dirname(cfg.ffmpeg) + path.delimiter + (env.PATH || "");
+  const parts = [path.dirname(process.execPath), env.PATH || ""];
+  if (cfg.ffmpeg && path.isAbsolute(cfg.ffmpeg)) parts.push(path.dirname(cfg.ffmpeg));
+  env.PATH = parts.filter(Boolean).join(path.delimiter);
   // A bare file name, not a path: on Windows npx is a batch file started through the shell,
   // and a folder name with a space in it would split in two.
   const r = spawnSync(isWin ? "npx.cmd" : "npx", ["--yes", `hyperframes@${L.HYPERFRAMES_VERSION}`, "render", "-o", "title-card.mp4", "--quality", "draft", "--quiet"],
