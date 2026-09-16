@@ -32,7 +32,7 @@ and tells you at the end what is still missing. Run the setup again when you hav
 
 ## Disk and time
 
-About 1.6 GB in total, measured in September 2026:
+About 1.5 GB in total, measured in September 2026:
 
 - the speech model's code in a private Python, in `~/.hub-video/venv` (420 MB on Ubuntu, 260 MB
   on Windows, where uv reused a Python that was already installed);
