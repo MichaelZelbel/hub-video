@@ -80,13 +80,18 @@ export function ffmpegCandidates(platform = process.platform, env = process.env)
   return c;
 }
 
-export function ffmpegInstallCommand(platform = process.platform, has = () => false) {
+// The install line for what is missing. On Linux `unzip` rides along: HyperFrames unpacks the
+// browser it draws with using `unzip`, which a fresh Ubuntu does not have, and without it the
+// first render fails after a 114 MB download.
+export function installCommand(platform = process.platform, has = () => false, { ffmpeg = true, unzip = false } = {}) {
   if (platform === "win32") {
-    return { cmd: "winget", args: ["install", "--id", "Gyan.FFmpeg", "-e", "--accept-source-agreements", "--accept-package-agreements"] };
+    return ffmpeg ? { cmd: "winget", args: ["install", "--id", "Gyan.FFmpeg", "-e", "--accept-source-agreements", "--accept-package-agreements"] } : null;
   }
-  if (platform === "darwin") return has("brew") ? { cmd: "brew", args: ["install", "ffmpeg"] } : null;
-  if (has("apt-get")) return { cmd: "sudo", args: ["apt-get", "install", "-y", "ffmpeg"] };
-  if (has("dnf")) return { cmd: "sudo", args: ["dnf", "install", "-y", "ffmpeg"] };
+  if (platform === "darwin") return ffmpeg && has("brew") ? { cmd: "brew", args: ["install", "ffmpeg"] } : null;
+  const pkgs = [ffmpeg && "ffmpeg", unzip && "unzip"].filter(Boolean);
+  if (!pkgs.length) return null;
+  if (has("apt-get")) return { cmd: "sudo", args: ["apt-get", "install", "-y", ...pkgs] };
+  if (has("dnf")) return { cmd: "sudo", args: ["dnf", "install", "-y", ...pkgs] };
   return null;
 }
 

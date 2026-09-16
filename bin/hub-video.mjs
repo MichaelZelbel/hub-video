@@ -79,30 +79,31 @@ function findFfmpeg(cfg) {
 async function stepFfmpeg(cfg, flags) {
   say("ffmpeg, the program that writes video files");
   let { exe, tried } = findFfmpeg(cfg);
-  if (exe) {
-    ok(`using ${exe}`);
-    return exe;
-  }
-  if (tried.length) {
+  const needUnzip = process.platform === "linux" && !which("unzip");
+  if (exe) ok(`using ${exe}`);
+  else if (tried.length) {
     console.log(`   Found ${tried.join(", ")}, but it cannot write H.264 video or draw captions.`);
     if (isWin) console.log("   On Windows that is usually the empty placeholder from the Microsoft Store.");
   }
-  const install = L.ffmpegInstallCommand(process.platform, (c) => !!which(c));
+  if (needUnzip) console.log("   unzip is missing too. HyperFrames needs it to unpack the browser it draws with.");
+  if (exe && !needUnzip) return exe;
+
+  const install = L.installCommand(process.platform, (c) => !!which(c), { ffmpeg: !exe, unzip: needUnzip });
   if (!install) {
     warn(process.platform === "darwin"
       ? "install Homebrew from https://brew.sh, then run `brew install ffmpeg` and this setup again."
-      : "install ffmpeg with your system's package manager, then run this setup again.");
-    return null;
+      : `install ${[!exe && "ffmpeg", needUnzip && "unzip"].filter(Boolean).join(" and ")} with your system's package manager, then run this setup again.`);
+    return exe;
   }
   const line = `${install.cmd} ${install.args.join(" ")}`;
-  if (!(await askYes(`Install ffmpeg now with: ${line} ?`, flags))) {
+  if (!(await askYes(`Install now with: ${line} ?`, flags))) {
     warn(`run \`${line}\` yourself, then run this setup again.`);
-    return null;
+    return exe;
   }
   const r = spawnSync(install.cmd, install.args, { stdio: "inherit", shell: isWin });
   if (r.status !== 0) {
     warn(`\`${line}\` did not finish cleanly. Run it yourself and read what it says, then run this setup again.`);
-    return null;
+    return exe;
   }
   ({ exe } = findFfmpeg(cfg));
   if (exe) {
@@ -272,6 +273,14 @@ function stepProof(cfg) {
   if (capStatus === 0) ok(`captions: open ${path.join(dir, "sample-vertical.captioned.mp4")} and watch 8 seconds`);
   else warn("captions did not finish (see above).");
 
+  if (!cfg.ffmpeg) {
+    warn("the animated title card needs ffmpeg as well, so it was not tried.");
+    return { captions: capStatus === 0, render: false };
+  }
+  if (process.platform === "linux" && !which("unzip")) {
+    warn("the animated title card needs unzip on Linux (see the ffmpeg step above), so it was not tried.");
+    return { captions: capStatus === 0, render: false };
+  }
   const card = path.join(dir, "title-card");
   L.copyDir(path.join(PKG_ROOT, "sample", "title-card"), card);
   const out = path.join(dir, "title-card.mp4");

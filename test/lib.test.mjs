@@ -66,12 +66,19 @@ test("an ffmpeg must write H.264 and draw subtitles", () => {
   assert.equal(L.ffmpegIsUsable(enc, " ... scale             V->V       Scale the input video size\n").ok, false);
 });
 
-test("the ffmpeg install line fits the system, and there is none where it cannot be known", () => {
-  assert.equal(L.ffmpegInstallCommand("win32").cmd, "winget");
-  assert.deepEqual(L.ffmpegInstallCommand("darwin", (c) => c === "brew"), { cmd: "brew", args: ["install", "ffmpeg"] });
-  assert.equal(L.ffmpegInstallCommand("darwin", () => false), null);
-  assert.deepEqual(L.ffmpegInstallCommand("linux", (c) => c === "apt-get").args.slice(0, 2), ["apt-get", "install"]);
-  assert.equal(L.ffmpegInstallCommand("linux", () => false), null);
+test("the install line fits the system, and there is none where it cannot be known", () => {
+  assert.equal(L.installCommand("win32").cmd, "winget");
+  assert.deepEqual(L.installCommand("darwin", (c) => c === "brew"), { cmd: "brew", args: ["install", "ffmpeg"] });
+  assert.equal(L.installCommand("darwin", () => false), null);
+  assert.deepEqual(L.installCommand("linux", (c) => c === "apt-get").args, ["apt-get", "install", "-y", "ffmpeg"]);
+  assert.equal(L.installCommand("linux", () => false), null);
+});
+
+test("on Linux, unzip joins the line when it is missing, alone or with ffmpeg", () => {
+  const apt = (c) => c === "apt-get";
+  assert.deepEqual(L.installCommand("linux", apt, { ffmpeg: true, unzip: true }).args, ["apt-get", "install", "-y", "ffmpeg", "unzip"]);
+  assert.deepEqual(L.installCommand("linux", apt, { ffmpeg: false, unzip: true }).args, ["apt-get", "install", "-y", "unzip"]);
+  assert.equal(L.installCommand("linux", apt, { ffmpeg: false, unzip: false }), null);
 });
 
 test("Windows looks for winget's ffmpeg before the one on PATH", () => {
