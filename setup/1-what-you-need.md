@@ -25,7 +25,7 @@ your footage is on your computer, and you want to watch the result where you mad
   - Linux: it offers `sudo apt-get install -y ffmpeg unzip`, which asks for your password.
     `unzip` is there because HyperFrames unpacks its browser with it and a fresh Ubuntu has none.
 - **uv**, a small program that installs a private Python for the speech model, so the Python
-  you may already have is left alone. If you use Hermes, you probably have uv already.
+  you may already have is left alone.
 
 Say no to either and the setup prints the line to run yourself, then carries on with the rest
 and tells you at the end what is still missing. Run the setup again when you have done it.
@@ -40,18 +40,18 @@ About 1.2 GB in total, measured on a fresh Ubuntu in September 2026:
 - the browser HyperFrames draws with (a 114 MB download, 260 MB unpacked), the first time
   anything is rendered.
 
-The first setup took about three minutes on the author's Windows desktop and on the Ubuntu test
-machine. Later runs take under a minute, most of it the proof.
+The first setup took 1 minute 42 seconds on the author's Windows desktop, downloads included.
+A second run took 34 seconds, most of it the proof.
 
 ## If the title card does not render
 
 The setup prints the last lines HyperFrames wrote. `npx hyperframes@0.8.43 doctor` then lists
 what this computer has and lacks, one line each, with a hint for each missing piece. On Linux,
-headless Chrome needs a handful of system libraries; a desktop Ubuntu and the WSL Ubuntu the
-add-on was tested on had all of them.
+headless Chrome needs a handful of system libraries; the Ubuntu the add-on was tested on had all
+of them already.
 
 ## A graphics card is optional
 
 Captions are heard on the graphics card when an NVIDIA card and its libraries are there, and
-on the processor otherwise. On the processor, a three-minute clip takes a minute or two. Both
-give the same words.
+on the processor otherwise; the setup's proof says which one it used. The processor is slower
+but gets there.
