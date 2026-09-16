@@ -4,6 +4,7 @@
 //   hub-video setup [--hub <folder>] [--yes]   install or update, then prove it works
 //   hub-video captions <clip>                  burn captions in your one look
 //   hub-video vertical <clip> [--captions]     a 9:16 cut from the middle of the picture
+//   hub-video hyperframes <command>            the pinned HyperFrames, without npx
 //   hub-video check                            say what is installed and what is missing
 //
 // Run it again any time. It keeps your caption style and anything you wrote yourself, and
@@ -163,6 +164,78 @@ async function download(url, file) {
   fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
 }
 
+// HyperFrames' recipe folder, adapted for a hub: every Markdown page calls the pinned copy
+// through hub-video instead of npx, and the entry page of each recipe says so first.
+function adaptRecipe(dir) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const f = path.join(dir, e.name);
+    if (e.isDirectory()) adaptRecipe(f);
+    else if (e.name.endsWith(".md")) {
+      const before = fs.readFileSync(f, "utf8");
+      let after = L.rewriteNpx(before);
+      if (e.name === "SKILL.md") after = L.addHubNote(after);
+      if (after !== before) fs.writeFileSync(f, after);
+    }
+  }
+}
+
+function hyperframesBin() {
+  return path.join(L.home(), "hyperframes", "node_modules", "hyperframes", "bin", "hyperframes.mjs");
+}
+
+function hyperframesInstalled() {
+  try {
+    const p = path.join(L.home(), "hyperframes", "node_modules", "hyperframes", "package.json");
+    return JSON.parse(fs.readFileSync(p, "utf8")).version === L.HYPERFRAMES_VERSION && fs.existsSync(hyperframesBin());
+  } catch {
+    return false;
+  }
+}
+
+function stepHyperframes() {
+  say(`HyperFrames ${L.HYPERFRAMES_VERSION} itself, the program that turns animated pages into video`);
+  const dir = path.join(L.home(), "hyperframes");
+  if (hyperframesInstalled()) {
+    ok(`ready in ${dir}`);
+    return true;
+  }
+  fs.mkdirSync(dir, { recursive: true });
+  console.log("   Installing it once, here, so your assistant never has to download a program while it works (about 370 MB)...");
+  const npm = path.join(path.dirname(process.execPath), isWin ? "npm.cmd" : "npm");
+  const r = spawnSync(fs.existsSync(npm) ? `"${npm}"` : "npm",
+    ["install", "--prefix", ".", `hyperframes@${L.HYPERFRAMES_VERSION}`, "--no-audit", "--no-fund", "--loglevel", "error"],
+    { cwd: dir, stdio: "inherit", shell: true });
+  if (r.status === 0 && hyperframesInstalled()) {
+    ok(`ready in ${dir}`);
+    return true;
+  }
+  warn("HyperFrames did not install (see above). Run this setup again; a dropped download is the usual cause.");
+  return false;
+}
+
+function hyperframesEnv(cfg) {
+  // HyperFrames runs on the Node that runs hub-video, which is known to be new enough. The folder
+  // ffmpeg lives in goes LAST: on Linux that is /usr/bin, which can also hold an old system Node
+  // that would otherwise be found first (it was, on the reader test machine). The two switches
+  // keep HyperFrames from updating skill folders outside the hub and from sending usage reports.
+  const env = { ...process.env, HYPERFRAMES_SKIP_SKILLS: "1", HYPERFRAMES_NO_TELEMETRY: "1" };
+  const parts = [path.dirname(process.execPath), env.PATH || ""];
+  if (cfg.ffmpeg && path.isAbsolute(cfg.ffmpeg)) parts.push(path.dirname(cfg.ffmpeg));
+  env.PATH = parts.filter(Boolean).join(path.delimiter);
+  return env;
+}
+
+function runHyperframes(cfg, args) {
+  const cmd = args[0];
+  if (cmd && L.HF_REFUSED.has(cmd)) {
+    console.error(`hub-video does not run \`hyperframes ${cmd}\`: it reaches outside this computer or changes what is installed.`);
+    console.error(`If the person wants it anyway, they run it themselves: npx hyperframes@${L.HYPERFRAMES_VERSION} ${args.join(" ")}`);
+    return 2;
+  }
+  if (!hyperframesInstalled()) fail("HyperFrames is not installed. Run `hub-video setup` first.");
+  return spawnSync(process.execPath, [hyperframesBin(), ...args], { stdio: "inherit", env: hyperframesEnv(cfg) }).status ?? 1;
+}
+
 async function stepSkills(hub) {
   say(`The recipes in your hub (HyperFrames ${L.HYPERFRAMES_TAG}, pinned, plus ${L.RECIPE})`);
   const room = L.skillsRoom(hub);
@@ -177,7 +250,7 @@ async function stepSkills(hub) {
     if (r.status !== 0) throw new Error(`tar could not unpack the download: ${r.stderr}`);
     const root = fs.readdirSync(tmp, { withFileTypes: true }).find((e) => e.isDirectory());
     const src = path.join(tmp, root.name);
-    const install = (name, from) => {
+    const install = (name, from, adapt) => {
       const dst = path.join(room, name);
       if (!L.mayReplace(dst)) {
         kept.push(name);
@@ -185,11 +258,14 @@ async function stepSkills(hub) {
       }
       fs.rmSync(dst, { recursive: true, force: true });
       L.copyDir(from, dst);
-      fs.writeFileSync(path.join(dst, L.MARKER), `hub-video ${VERSION}, HyperFrames ${L.HYPERFRAMES_TAG}\n`);
+      if (adapt) adaptRecipe(dst);
+      fs.writeFileSync(path.join(dst, L.MARKER),
+        `hub-video ${VERSION}, HyperFrames ${L.HYPERFRAMES_TAG}` +
+        (adapt ? ". Changed from the original: `npx hyperframes` reads `hub-video hyperframes`, and SKILL.md starts with a note for this hub.\n" : "\n"));
       written.push(name);
     };
-    for (const name of L.hyperframesSkills(src)) install(name, path.join(src, "skills", name));
-    install(L.RECIPE, path.join(PKG_ROOT, "skill", L.RECIPE));
+    for (const name of L.hyperframesSkills(src)) install(name, path.join(src, "skills", name), true);
+    install(L.RECIPE, path.join(PKG_ROOT, "skill", L.RECIPE), false);
   } catch (e) {
     warn(`could not fetch HyperFrames' recipes: ${e.message}. Check the internet connection and run this setup again.`);
     return { room, written, kept, failed: true };
@@ -285,25 +361,20 @@ function stepProof(cfg) {
   const card = path.join(dir, "title-card");
   L.copyDir(path.join(PKG_ROOT, "sample", "title-card"), card);
   const out = path.join(dir, "title-card.mp4");
+  if (!hyperframesInstalled()) {
+    warn("the animated title card needs HyperFrames (see above), so it was not tried.");
+    return { captions: capStatus === 0, render: false };
+  }
   console.log(`   Rendering with HyperFrames ${L.HYPERFRAMES_VERSION}; the first render downloads the browser it draws with (114 MB)...`);
-  // The render runs on the Node that runs this setup, which is known to be new enough. The
-  // folder ffmpeg lives in goes LAST: on Linux that is /usr/bin, which can also hold an old
-  // system Node that would otherwise be found first (it was, on the reader test machine).
-  const env = { ...process.env };
-  const parts = [path.dirname(process.execPath), env.PATH || ""];
-  if (cfg.ffmpeg && path.isAbsolute(cfg.ffmpeg)) parts.push(path.dirname(cfg.ffmpeg));
-  env.PATH = parts.filter(Boolean).join(path.delimiter);
-  // A bare file name, not a path: on Windows npx is a batch file started through the shell,
-  // and a folder name with a space in it would split in two.
-  const r = spawnSync(isWin ? "npx.cmd" : "npx", ["--yes", `hyperframes@${L.HYPERFRAMES_VERSION}`, "render", "-o", "title-card.mp4", "--quality", "draft", "--quiet"],
-    { cwd: card, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", env, shell: isWin });
+  const r = spawnSync(process.execPath, [hyperframesBin(), "render", "-o", "title-card.mp4", "--quality", "draft", "--quiet"],
+    { cwd: card, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", env: hyperframesEnv(cfg) });
   const made = path.join(card, "title-card.mp4");
   if (fs.existsSync(made)) fs.renameSync(made, out);
   const rendered = r.status === 0 && fs.existsSync(out) && fs.statSync(out).size > 10000;
   if (rendered) ok(`animated slides: open ${out} and watch 3 seconds`);
   else {
     const tail = `${r.stdout || ""}\n${r.stderr || ""}`.trim().split(/\r?\n/).slice(-8).join("\n     ");
-    warn(`the HyperFrames render did not finish. It said:\n     ${tail}\n   Run \`npx hyperframes@${L.HYPERFRAMES_VERSION} doctor\` to see what this computer is missing.`);
+    warn(`the HyperFrames render did not finish. It said:\n     ${tail}\n   Run \`hub-video hyperframes doctor\` to see what this computer is missing.`);
   }
   return { captions: capStatus === 0, render: rendered };
 }
@@ -323,6 +394,7 @@ async function setup(flags) {
   cfg.app = stepCommand();
   cfg.ffmpeg = await stepFfmpeg(cfg, flags);
   cfg.python = await stepPython(cfg, flags);
+  const hf = stepHyperframes();
   cfg.hyperframes = L.HYPERFRAMES_TAG;
   cfg.version = VERSION;
   L.writeConfig(cfg);
@@ -330,7 +402,7 @@ async function setup(flags) {
   let proof = { captions: false, render: false };
   if (!flags.skipProof) proof = stepProof(cfg);
 
-  const ready = !skills.failed && cfg.ffmpeg && cfg.python && (flags.skipProof || (proof.captions && proof.render));
+  const ready = !skills.failed && cfg.ffmpeg && cfg.python && hf && (flags.skipProof || (proof.captions && proof.render));
   console.log("");
   if (ready) {
     console.log("Done. Tell your assistant, for example:");
@@ -351,6 +423,7 @@ function check() {
   const room = cfg.hub ? L.skillsRoom(cfg.hub) : "";
   line(!!room && fs.existsSync(path.join(room, L.RECIPE, "SKILL.md")), `the ${L.RECIPE} recipe`);
   line(!!room && fs.existsSync(path.join(room, "hyperframes", "SKILL.md")), `HyperFrames recipes (${cfg.hyperframes || "?"})`);
+  line(hyperframesInstalled(), `HyperFrames ${L.HYPERFRAMES_VERSION} itself (hub-video hyperframes <command>)`);
   line(!!cfg.ffmpeg && !!findFfmpeg(cfg).exe, `ffmpeg ${cfg.ffmpeg || ""}`);
   line(!!cfg.python && fs.existsSync(cfg.python) && run(cfg.python, ["-c", "import faster_whisper, PIL"]).status === 0, "the speech model's code");
   if (cfg.hub) line(fs.existsSync(path.join(cfg.hub, "video", "caption-style.json")), `caption look ${path.join(cfg.hub, "video", "caption-style.json")}`);
@@ -366,6 +439,9 @@ switch (sub) {
   case "vertical":
     process.exitCode = runTool(L.readConfig(), sub, rest);
     break;
+  case "hyperframes":
+    process.exitCode = runHyperframes(L.readConfig(), rest);
+    break;
   case "check":
     check();
     break;
@@ -379,6 +455,7 @@ switch (sub) {
   hub-video setup [--hub <folder>] [--yes]   install or update, then prove it works
   hub-video captions <clip>                  burn captions in your one look -> <clip>.captioned.mp4
   hub-video vertical <clip> [--captions]     a 9:16 cut from the middle      -> <clip>.vertical.mp4
+  hub-video hyperframes <command>            HyperFrames ${L.HYPERFRAMES_VERSION} as installed here: check, render, preview...
   hub-video check                            what is installed and what is missing
 
 Your caption look: <hub>/video/caption-style.json. Animated slides and overlays: ask your

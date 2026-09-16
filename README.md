@@ -13,10 +13,13 @@ This is for some people, not most. If you do not post videos, you do not need th
 - **Two commands of its own**, `hub-video captions` and `hub-video vertical`. Captions
   are heard by a speech model that runs on your computer, laid out in one fixed look, and
   burned into the picture. The vertical cut takes the middle of a wide picture at full height.
-- **HyperFrames' own recipes**, pinned to one release (v0.8.43), copied into your hub's skills
-  folder. They teach your assistant to build animated title cards, slides, explainers and
-  graphics over a talking head, and to render them to MP4. HyperFrames is open source
-  (Apache 2.0) by HeyGen; nothing here changes it.
+- **HyperFrames, pinned to one release (0.8.43)**: the program installed once on your computer
+  and run as `hub-video hyperframes`, and its recipes copied into your hub's skills folder. They
+  teach your assistant to build animated title cards, slides, explainers and graphics over a
+  talking head, and to render them to MP4. HyperFrames is open source (Apache 2.0) by HeyGen.
+  The hub's copy of its recipes differs in one way, said at the top of each: they call
+  `hub-video hyperframes` where the originals say `npx hyperframes`. Usage reports are off, and
+  the commands that publish, render in the cloud or sign in are refused.
 - **One recipe of its own**, `video-finishing`, which tells your assistant which tool fits which
   request, how to check the result before saying it is done, and what it must not do: cut
   your footage, overwrite the source, or post anything.
@@ -28,8 +31,8 @@ Nothing here is paid. Generated video clips from paid services are not included;
 ## What you need
 
 1. A hub from the book on Windows, macOS or Linux, and Node.js 22 or newer.
-2. About 1.2 GB of free disk: the speech model (460 MB), its private Python (260 to 420 MB),
-   and the browser HyperFrames draws with (260 MB unpacked).
+2. About 1.6 GB of free disk: the speech model (460 MB), its private Python (260 to 420 MB),
+   HyperFrames (370 MB) and the browser it draws with (260 MB).
 3. ffmpeg, the program that writes video files, and uv, which installs a private Python. On
    Linux also `unzip`. The setup offers to install what is missing and asks first. Details:
    [setup/1-what-you-need.md](setup/1-what-you-need.md).
@@ -64,6 +67,7 @@ Or run the two commands yourself:
 ```
 hub-video captions clip.mp4              -> clip.captioned.mp4
 hub-video vertical clip.mp4 --captions   -> clip.vertical.captioned.mp4
+hub-video hyperframes render             HyperFrames as installed here (check, preview, snapshot...)
 hub-video check                          what is installed and what is missing
 ```
 

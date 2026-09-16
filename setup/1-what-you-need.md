@@ -32,11 +32,12 @@ and tells you at the end what is still missing. Run the setup again when you hav
 
 ## Disk and time
 
-About 1.2 GB in total, measured on a fresh Ubuntu in September 2026:
+About 1.6 GB in total, measured in September 2026:
 
-- the speech model's code in a private Python, in `~/.hub-video/venv` (420 MB there, 260 MB on
-  Windows, where uv reused a Python that was already installed);
+- the speech model's code in a private Python, in `~/.hub-video/venv` (420 MB on Ubuntu, 260 MB
+  on Windows, where uv reused a Python that was already installed);
 - the speech model itself (460 MB), downloaded the first time anything is captioned;
+- HyperFrames, in `~/.hub-video/hyperframes` (370 MB);
 - the browser HyperFrames draws with (a 114 MB download, 260 MB unpacked), the first time
   anything is rendered.
 
@@ -45,7 +46,7 @@ A second run took 34 seconds, most of it the proof.
 
 ## If the title card does not render
 
-The setup prints the last lines HyperFrames wrote. `npx hyperframes@0.8.43 doctor` then lists
+The setup prints the last lines HyperFrames wrote. `hub-video hyperframes doctor` then lists
 what this computer has and lacks, one line each, with a hint for each missing piece. On Linux,
 headless Chrome needs a handful of system libraries; the Ubuntu the add-on was tested on had all
 of them already.

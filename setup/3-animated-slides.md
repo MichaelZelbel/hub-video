@@ -40,13 +40,22 @@ the kind of note that works. Captions go on last, on top of the render:
 
 ## To watch while it works
 
-`npx hyperframes@0.8.43 preview`, run in the project folder, opens the composition in your
+`hub-video hyperframes preview`, run in the project folder, opens the composition in your
 browser with a timeline you can scrub. You do not need it; it is there when you want to see a
 card before the render.
 
-## About the pin
+## About the pin, and what stays on your computer
 
-The recipes in your hub belong to HyperFrames 0.8.43. When a newer add-on version moves the
-pin, running the setup line again replaces them. The HyperFrames program itself, started with
-`npx`, may also offer to update skills it finds on your computer; that does not touch the copies
-in your hub.
+HyperFrames 0.8.43 is installed once, in `~/.hub-video/hyperframes`, and the recipes in your hub
+belong to that version. Your assistant runs it as `hub-video hyperframes`, never through `npx`,
+which would fetch whatever version is newest (and which Hermes blocks as a download anyway).
+When a newer add-on moves the pin, running the setup line again replaces both.
+
+In the hub's copy of HyperFrames' recipes, two things differ from the original: every
+`npx hyperframes` reads `hub-video hyperframes`, and each recipe's first page starts with a
+short note saying so. Each recipe folder's `.installed-by-hub-video` file records that.
+
+`hub-video hyperframes` turns off HyperFrames' anonymous usage reports and its habit of updating
+skill folders outside your hub. It refuses the commands that publish to HeyGen's hosting, render
+in the cloud, sign in or send feedback. If you want one of those, run it yourself with
+`npx hyperframes@0.8.43 <command>`; it is then your decision, not your assistant's.

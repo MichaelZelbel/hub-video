@@ -179,3 +179,31 @@ export function gitignoreBlock(text, relPaths) {
   if (!relPaths.length) return text;
   return (text && !text.endsWith("\n") ? text + "\n" : text) + (text ? "\n" : "") + body;
 }
+
+// HyperFrames commands that reach outside this computer: hosting, cloud rendering, accounts,
+// usage reports, and updates that would move the pin. `hub-video hyperframes` refuses them and
+// says how to run one on purpose.
+export const HF_REFUSED = new Set(["publish", "cloud", "cloudrun", "lambda", "auth", "feedback", "telemetry", "upgrade", "skills"]);
+
+// The recipes say `npx hyperframes ...`. Hermes blocks `npx` as a package download, and `npx`
+// would also ignore the pin. In the hub's copy every such call becomes `hub-video hyperframes`,
+// which runs the pinned copy the setup installed.
+const NPX_HF = /npx\s+(?:--yes\s+|-y\s+)?hyperframes(?:@[\w.-]+)?(?=[\s`'")\]]|$)/g;
+export function rewriteNpx(text) {
+  return text.replace(NPX_HF, "hub-video hyperframes");
+}
+
+export const HUB_NOTE = `> **In this hub** (added by hub-video, not part of HyperFrames): wherever these recipes say
+> \`npx hyperframes <command>\`, the command is \`hub-video hyperframes <command>\`, which runs
+> HyperFrames ${HYPERFRAMES_VERSION} as installed on this computer. It works offline once set up, and
+> it refuses the commands that publish, render in the cloud, sign in or send reports. Captions in
+> the person's own look and the vertical cut come from the \`video-finishing\` recipe; read it
+> too before you start.
+`;
+
+export function addHubNote(skillMd) {
+  if (skillMd.includes("**In this hub** (added by hub-video")) return skillMd;
+  const m = skillMd.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
+  const head = m ? m[0] : "";
+  return head + "\n" + HUB_NOTE + "\n" + skillMd.slice(head.length).replace(/^\r?\n/, "");
+}

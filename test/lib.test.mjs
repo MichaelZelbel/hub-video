@@ -133,3 +133,23 @@ test("the .gitignore block is added once, rewritten in place, and leaves other l
   assert.match(second, /secrets\/\n$/);
   assert.equal(L.gitignoreBlock("", []), "");
 });
+
+test("every npx call to HyperFrames becomes hub-video hyperframes, and nothing else changes", () => {
+  const src = "Run `npx hyperframes check`, then npx --yes hyperframes@0.8.43 render -o a.mp4 and (npx hyperframes@latest init x).\nnpx tsx build.ts\nnpx hyperframes";
+  assert.equal(L.rewriteNpx(src),
+    "Run `hub-video hyperframes check`, then hub-video hyperframes render -o a.mp4 and (hub-video hyperframes init x).\nnpx tsx build.ts\nhub-video hyperframes");
+  assert.equal(L.rewriteNpx("npx hyperframes-localize-fonts"), "npx hyperframes-localize-fonts");
+});
+
+test("the hub note goes after the front matter, once", () => {
+  const md = "---\nname: hyperframes\ndescription: x\n---\n\n# HyperFrames entry point\n";
+  const once = L.addHubNote(md);
+  assert.match(once, /^---\nname: hyperframes\ndescription: x\n---\n\n> \*\*In this hub\*\*/);
+  assert.match(once, /# HyperFrames entry point\n$/);
+  assert.equal(L.addHubNote(once), once);
+});
+
+test("commands that leave the computer are refused", () => {
+  for (const c of ["publish", "cloud", "lambda", "auth", "feedback", "skills"]) assert.ok(L.HF_REFUSED.has(c), c);
+  for (const c of ["check", "render", "preview", "init", "snapshot", "add", "catalog"]) assert.ok(!L.HF_REFUSED.has(c), c);
+});
