@@ -285,7 +285,7 @@ function stepProof(cfg) {
   const card = path.join(dir, "title-card");
   L.copyDir(path.join(PKG_ROOT, "sample", "title-card"), card);
   const out = path.join(dir, "title-card.mp4");
-  console.log(`   Rendering with HyperFrames ${L.HYPERFRAMES_VERSION}; the first render downloads a browser it draws with (about 150 MB)...`);
+  console.log(`   Rendering with HyperFrames ${L.HYPERFRAMES_VERSION}; the first render downloads the browser it draws with (114 MB)...`);
   // The render runs on the Node that runs this setup, which is known to be new enough. The
   // folder ffmpeg lives in goes LAST: on Linux that is /usr/bin, which can also hold an old
   // system Node that would otherwise be found first (it was, on the reader test machine).

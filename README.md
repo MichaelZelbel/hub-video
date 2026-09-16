@@ -28,10 +28,10 @@ Nothing here is paid. Generated video clips from paid services are not included;
 ## What you need
 
 1. A hub from the book on Windows, macOS or Linux, and Node.js 22 or newer.
-2. About 1.5 GB of free disk: the speech model (about 500 MB), its Python (about 400 MB), and
-   the browser HyperFrames draws with (about 150 MB).
-3. ffmpeg, the program that writes video files, and uv, which installs a private Python. The
-   setup offers to install both and asks first. Details:
+2. About 1.2 GB of free disk: the speech model (460 MB), its private Python (260 to 420 MB),
+   and the browser HyperFrames draws with (260 MB unpacked).
+3. ffmpeg, the program that writes video files, and uv, which installs a private Python. On
+   Linux also `unzip`. The setup offers to install what is missing and asks first. Details:
    [setup/1-what-you-need.md](setup/1-what-you-need.md).
 
 ## Install

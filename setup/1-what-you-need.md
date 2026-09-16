@@ -22,7 +22,8 @@ your footage is on your computer, and you want to watch the result where you mad
     has already is an empty placeholder from the Microsoft Store; the setup skips it.
   - macOS: it offers `brew install ffmpeg` if you have Homebrew (https://brew.sh). Without
     Homebrew it says so, and you install Homebrew first.
-  - Linux: it offers `sudo apt-get install -y ffmpeg`, which asks for your password.
+  - Linux: it offers `sudo apt-get install -y ffmpeg unzip`, which asks for your password.
+    `unzip` is there because HyperFrames unpacks its browser with it and a fresh Ubuntu has none.
 - **uv**, a small program that installs a private Python for the speech model, so the Python
   you may already have is left alone. If you use Hermes, you probably have uv already.
 
@@ -31,21 +32,23 @@ and tells you at the end what is still missing. Run the setup again when you hav
 
 ## Disk and time
 
-About 1.5 GB in total, most of it downloaded the first time something needs it:
+About 1.2 GB in total, measured on a fresh Ubuntu in September 2026:
 
-- the speech model's code in a private Python, in `~/.hub-video/venv`;
-- the speech model itself (about 500 MB), the first time you caption anything;
-- the browser HyperFrames draws with (about 150 MB), the first time you render.
+- the speech model's code in a private Python, in `~/.hub-video/venv` (420 MB there, 260 MB on
+  Windows, where uv reused a Python that was already installed);
+- the speech model itself (460 MB), downloaded the first time anything is captioned;
+- the browser HyperFrames draws with (a 114 MB download, 260 MB unpacked), the first time
+  anything is rendered.
 
-The first setup takes a few minutes on a normal connection. Later runs take seconds.
+The first setup took about three minutes on the author's Windows desktop and on the Ubuntu test
+machine. Later runs take under a minute, most of it the proof.
 
-## Linux only: the browser's libraries
+## If the title card does not render
 
-HyperFrames draws each frame in a headless Chrome. A desktop Linux has what Chrome needs. A
-minimal one may not, and the title-card proof then fails with a message about a missing `.so`
-file. `npx hyperframes@0.8.43 doctor` names what is missing; on Ubuntu,
-`sudo apt-get install -y libnss3 libatk-bridge2.0-0t64 libgbm1 libasound2t64 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libpango-1.0-0 libcairo2`
-is the usual fix.
+The setup prints the last lines HyperFrames wrote. `npx hyperframes@0.8.43 doctor` then lists
+what this computer has and lacks, one line each, with a hint for each missing piece. On Linux,
+headless Chrome needs a handful of system libraries; a desktop Ubuntu and the WSL Ubuntu the
+add-on was tested on had all of them.
 
 ## A graphics card is optional
 

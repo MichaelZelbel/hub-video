@@ -143,7 +143,7 @@ def cmd_captions(a, src=None):
             wav = os.path.join(tmp, "audio.wav")
             run([ff, "-v", "error", "-y", "-i", src, "-map", "0:a:0", "-ac", "1", "-ar", "16000",
                  "-c:a", "pcm_s16le", wav], "reading the sound")
-            print("listening to the clip (the first run downloads the speech model, about 500 MB)...")
+            print("listening to the clip (the very first time, this also downloads the speech model, 460 MB)...")
             words = transcribe(wav, a.model, a.language)
         with open(words_file, "w", encoding="utf-8") as f:
             json.dump(words, f, ensure_ascii=False, indent=1)
