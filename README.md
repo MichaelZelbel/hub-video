@@ -6,6 +6,10 @@ or "put a title card in front of it", and it does the finishing on your own comp
 in your one look, a 9:16 cut for Reels, TikTok and Shorts, and animated slides and overlays
 made with [HyperFrames](https://github.com/heygen-com/hyperframes).
 
+![The sample clip with burned-in captions, wide on the left and as a vertical cut on the right](docs/captions-demo.gif)
+
+The 8-second sample clip after `hub-video captions` (left) and `hub-video vertical --captions` (right).
+
 This is for some people, not most. If you do not post videos, you do not need this folder.
 
 ## What it is
