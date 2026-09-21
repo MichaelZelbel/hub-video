@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// hub-video: let your hub finish your videos. An add-on for "Teach It Once", Chapter 33.
+// hub-video: let your hub finish your videos. An add-on for "Teach It Once", Chapter 35.
 //
 //   hub-video setup [--hub <folder>] [--yes]   install or update, then prove it works
 //   hub-video captions <clip>                  burn captions in your one look
