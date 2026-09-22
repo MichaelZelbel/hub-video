@@ -1,39 +1,39 @@
-// The parts of hub-video that decide things, kept apart from the parts that talk, so the
+// The parts of mc-video that decide things, kept apart from the parts that talk, so the
 // tests can check every decision without a network, an ffmpeg or a terminal.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
 // HyperFrames is pinned. Its skills and its renderer change on their own clock, and a
-// reader's hub should change only when this add-on says so.
+// reader's godspeed should change only when this add-on says so.
 export const HYPERFRAMES_TAG = "v0.8.43";
 export const HYPERFRAMES_VERSION = HYPERFRAMES_TAG.slice(1);
-export const MARKER = ".installed-by-hub-video";
+export const MARKER = ".installed-by-mc-video";
 export const RECIPE = "video-finishing";
 
 export function home() {
-  return process.env.HUB_VIDEO_HOME || path.join(os.homedir(), ".hub-video");
+  return process.env.GODSPEED_VIDEO_HOME || path.join(os.homedir(), ".mc-video");
 }
 
 export function nodeMajor(version = process.versions.node) {
   return Number(String(version).split(".")[0]);
 }
 
-// Where the hub is, in the order a reader would expect: said on the command line, recorded
+// Where the mission control is, in the order a reader would expect: said on the command line, recorded
 // by the kit's installer, the folder you are standing in, then the book's default.
 export function findHub({ arg, cwd = process.cwd(), userHome = os.homedir() } = {}) {
   const looksLikeHub = (d) => d && fs.existsSync(path.join(d, "AGENTS.md"));
   if (arg) return looksLikeHub(path.resolve(arg)) ? path.resolve(arg) : null;
-  const envFile = path.join(userHome, ".hub", "device.env");
+  const envFile = path.join(userHome, ".godspeed", "device.env");
   if (fs.existsSync(envFile)) {
-    const m = fs.readFileSync(envFile, "utf8").match(/^\s*HUB_DIR=(.+)$/m);
+    const m = fs.readFileSync(envFile, "utf8").match(/^\s*GODSPEED_DIR=(.+)$/m);
     if (m) {
       const d = m[1].trim().replace(/^["']|["']$/g, "");
       if (looksLikeHub(d)) return d;
     }
   }
   if (looksLikeHub(cwd)) return cwd;
-  const dflt = path.join(userHome, "hub");
+  const dflt = path.join(userHome, "godspeed");
   return looksLikeHub(dflt) ? dflt : null;
 }
 
@@ -45,12 +45,12 @@ function countRecipes(dir) {
   }
 }
 
-// The same answer the kit's installer gives: the visible skills/ room unless this hub keeps
+// The same answer the kit's installer gives: the visible skills/ room unless this mission control keeps
 // its recipes only in .claude/skills.
-export function skillsRoom(hub) {
-  if (countRecipes(path.join(hub, "skills")) > 0) return path.join(hub, "skills");
-  if (countRecipes(path.join(hub, ".claude", "skills")) > 0) return path.join(hub, ".claude", "skills");
-  return path.join(hub, "skills");
+export function skillsRoom(godspeed) {
+  if (countRecipes(path.join(godspeed, "skills")) > 0) return path.join(godspeed, "skills");
+  if (countRecipes(path.join(godspeed, ".claude", "skills")) > 0) return path.join(godspeed, ".claude", "skills");
+  return path.join(godspeed, "skills");
 }
 
 // May this installer write the skill folder `dir`? Only when it is new or was put there by
@@ -109,7 +109,7 @@ export function venvPython(venv, platform = process.platform) {
 // Where the command goes: the kit's own command folder when this machine has one, which the
 // kit already put on PATH, otherwise the usual per-user folder.
 export function binDir(userHome = os.homedir()) {
-  const kit = path.join(userHome, ".hub", "bin");
+  const kit = path.join(userHome, ".godspeed", "bin");
   return fs.existsSync(kit) ? kit : path.join(userHome, ".local", "bin");
 }
 
@@ -120,9 +120,9 @@ export function onPath(dir, envPath = process.env.PATH || "", platform = process
 }
 
 export function launchers(appDir, platform = process.platform) {
-  const script = path.join(appDir, "bin", "hub-video.mjs");
-  const out = [{ name: "hub-video", body: `#!/bin/sh\nexec node "${script.replace(/\\/g, "/")}" "$@"\n`, mode: 0o755 }];
-  if (platform === "win32") out.push({ name: "hub-video.cmd", body: `@echo off\r\nnode "${script}" %*\r\n`, mode: 0o644 });
+  const script = path.join(appDir, "bin", "mc-video.mjs");
+  const out = [{ name: "mc-video", body: `#!/bin/sh\nexec node "${script.replace(/\\/g, "/")}" "$@"\n`, mode: 0o755 }];
+  if (platform === "win32") out.push({ name: "mc-video.cmd", body: `@echo off\r\nnode "${script}" %*\r\n`, mode: 0o644 });
   return out;
 }
 
@@ -161,11 +161,11 @@ export function hyperframesSkills(unpackedRoot) {
     .sort();
 }
 
-// The hub's .gitignore with one block listing HyperFrames' recipe folders. The block is
+// The mission control's .gitignore with one block listing HyperFrames' recipe folders. The block is
 // rewritten in place on every run, so a newer pin that adds or drops a recipe leaves no stale
 // lines, and nothing outside the block is touched.
-export const IGNORE_START = "# hub-video: HyperFrames' recipes. `hub-video setup` downloads them on each computer.";
-export const IGNORE_END = "# end hub-video";
+export const IGNORE_START = "# mc-video: HyperFrames' recipes. `mc-video setup` downloads them on each computer.";
+export const IGNORE_END = "# end mc-video";
 export function gitignoreBlock(text, relPaths) {
   const lines = [IGNORE_START, ...relPaths.map((p) => p.split(/[\\/]/).join("/") + "/").sort(), IGNORE_END];
   const body = lines.join("\n") + "\n";
@@ -181,20 +181,20 @@ export function gitignoreBlock(text, relPaths) {
 }
 
 // HyperFrames commands that reach outside this computer: hosting, cloud rendering, accounts,
-// usage reports, and updates that would move the pin. `hub-video hyperframes` refuses them and
+// usage reports, and updates that would move the pin. `mc-video hyperframes` refuses them and
 // says how to run one on purpose.
 export const HF_REFUSED = new Set(["publish", "cloud", "cloudrun", "lambda", "auth", "feedback", "telemetry", "upgrade", "skills"]);
 
 // The recipes say `npx hyperframes ...`. Hermes blocks `npx` as a package download, and `npx`
-// would also ignore the pin. In the hub's copy every such call becomes `hub-video hyperframes`,
+// would also ignore the pin. In the mission control's copy every such call becomes `mc-video hyperframes`,
 // which runs the pinned copy the setup installed.
 const NPX_HF = /npx\s+(?:--yes\s+|-y\s+)?hyperframes(?:@[\w.-]+)?(?=[\s`'")\]]|$)/g;
 export function rewriteNpx(text) {
-  return text.replace(NPX_HF, "hub-video hyperframes");
+  return text.replace(NPX_HF, "mc-video hyperframes");
 }
 
-export const HUB_NOTE = `> **In this hub** (added by hub-video, not part of HyperFrames): wherever these recipes say
-> \`npx hyperframes <command>\`, the command is \`hub-video hyperframes <command>\`, which runs
+export const GODSPEED_NOTE = `> **In this mission control** (added by mc-video, not part of HyperFrames): wherever these recipes say
+> \`npx hyperframes <command>\`, the command is \`mc-video hyperframes <command>\`, which runs
 > HyperFrames ${HYPERFRAMES_VERSION} as installed on this computer. It works offline once set up, and
 > it refuses the commands that publish, render in the cloud, sign in or send reports. Captions in
 > the person's own look and the vertical cut come from the \`video-finishing\` recipe; read it
@@ -202,8 +202,8 @@ export const HUB_NOTE = `> **In this hub** (added by hub-video, not part of Hype
 `;
 
 export function addHubNote(skillMd) {
-  if (skillMd.includes("**In this hub** (added by hub-video")) return skillMd;
+  if (skillMd.includes("**In this mission control** (added by mc-video")) return skillMd;
   const m = skillMd.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
   const head = m ? m[0] : "";
-  return head + "\n" + HUB_NOTE + "\n" + skillMd.slice(head.length).replace(/^\r?\n/, "");
+  return head + "\n" + GODSPEED_NOTE + "\n" + skillMd.slice(head.length).replace(/^\r?\n/, "");
 }

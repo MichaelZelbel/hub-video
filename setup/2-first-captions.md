@@ -6,7 +6,7 @@ Take a clip you already cut, with you talking in it. Tell your assistant where i
 
 > Caption ~/Videos/2026-09-20-talk.mp4.
 
-It runs `hub-video captions` on the clip and reports three things: the file it made
+It runs `mc-video captions` on the clip and reports three things: the file it made
 (`2026-09-20-talk.captioned.mp4`, next to the original), that the length matches the original,
 and whether the captions stayed inside the safe zone, the part of a phone screen that the app's
 buttons and the caption of the post do not cover. The original clip is never changed.
@@ -39,7 +39,7 @@ your assistant "the caption says Hermits, it should be Hermes" and it edits the 
 ## Your one look
 
 Every video gets the same captions: heavy white capitals with a thick black outline, and the
-word being spoken lifts slightly and turns yellow. That look is one file in your hub:
+word being spoken lifts slightly and turns yellow. That look is one file in your mission control:
 `video/caption-style.json`.
 
 Change it by asking, or by editing the file:

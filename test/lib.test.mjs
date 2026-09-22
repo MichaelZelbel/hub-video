@@ -1,4 +1,4 @@
-// Network-free tests for the decisions hub-video makes. Run: node --test test/
+// Network-free tests for the decisions mc-video makes. Run: node --test test/
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -7,45 +7,45 @@ import test from "node:test";
 import * as L from "../bin/lib.mjs";
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "hv-test-"));
-const hubAt = (d) => {
+const godspeedAt = (d) => {
   fs.mkdirSync(d, { recursive: true });
-  fs.writeFileSync(path.join(d, "AGENTS.md"), "# hub\n");
+  fs.writeFileSync(path.join(d, "AGENTS.md"), "# godspeed\n");
   return d;
 };
 
-test("the hub named on the command line wins, and a folder without AGENTS.md is refused", () => {
+test("the mission control named on the command line wins, and a folder without AGENTS.md is refused", () => {
   const home = tmp();
-  const hub = hubAt(path.join(home, "elsewhere"));
-  assert.equal(L.findHub({ arg: hub, userHome: home, cwd: home }), hub);
+  const godspeed = godspeedAt(path.join(home, "elsewhere"));
+  assert.equal(L.findHub({ arg: godspeed, userHome: home, cwd: home }), godspeed);
   assert.equal(L.findHub({ arg: home, userHome: home, cwd: home }), null);
 });
 
-test("the hub recorded by the kit comes before the current folder", () => {
+test("the mission control recorded by the kit comes before the current folder", () => {
   const home = tmp();
-  const recorded = hubAt(path.join(home, "recorded"));
-  const here = hubAt(path.join(home, "here"));
-  fs.mkdirSync(path.join(home, ".hub"));
-  fs.writeFileSync(path.join(home, ".hub", "device.env"), `HUB_PROMPT_SOURCES=hermes\nHUB_DIR=${recorded}\n`);
+  const recorded = godspeedAt(path.join(home, "recorded"));
+  const here = godspeedAt(path.join(home, "here"));
+  fs.mkdirSync(path.join(home, ".godspeed"));
+  fs.writeFileSync(path.join(home, ".godspeed", "device.env"), `GODSPEED_PROMPT_SOURCES=hermes\nGODSPEED_DIR=${recorded}\n`);
   assert.equal(L.findHub({ userHome: home, cwd: here }), recorded);
 });
 
-test("without a record, the current folder, then ~/hub", () => {
+test("without a record, the current folder, then ~/godspeed", () => {
   const home = tmp();
-  const here = hubAt(path.join(home, "here"));
+  const here = godspeedAt(path.join(home, "here"));
   assert.equal(L.findHub({ userHome: home, cwd: here }), here);
-  const dflt = hubAt(path.join(home, "hub"));
+  const dflt = godspeedAt(path.join(home, "godspeed"));
   assert.equal(L.findHub({ userHome: home, cwd: home }), dflt);
 });
 
-test("recipes go to the visible skills room unless the hub only has .claude/skills", () => {
-  const hub = hubAt(tmp());
-  assert.equal(L.skillsRoom(hub), path.join(hub, "skills"));
-  fs.mkdirSync(path.join(hub, ".claude", "skills", "x"), { recursive: true });
-  fs.writeFileSync(path.join(hub, ".claude", "skills", "x", "SKILL.md"), "x");
-  assert.equal(L.skillsRoom(hub), path.join(hub, ".claude", "skills"));
-  fs.mkdirSync(path.join(hub, "skills", "y"), { recursive: true });
-  fs.writeFileSync(path.join(hub, "skills", "y", "SKILL.md"), "y");
-  assert.equal(L.skillsRoom(hub), path.join(hub, "skills"));
+test("recipes go to the visible skills room unless the mission control only has .claude/skills", () => {
+  const godspeed = godspeedAt(tmp());
+  assert.equal(L.skillsRoom(godspeed), path.join(godspeed, "skills"));
+  fs.mkdirSync(path.join(godspeed, ".claude", "skills", "x"), { recursive: true });
+  fs.writeFileSync(path.join(godspeed, ".claude", "skills", "x", "SKILL.md"), "x");
+  assert.equal(L.skillsRoom(godspeed), path.join(godspeed, ".claude", "skills"));
+  fs.mkdirSync(path.join(godspeed, "skills", "y"), { recursive: true });
+  fs.writeFileSync(path.join(godspeed, "skills", "y", "SKILL.md"), "y");
+  assert.equal(L.skillsRoom(godspeed), path.join(godspeed, "skills"));
 });
 
 test("a recipe the reader wrote is never replaced; one this installer wrote is", () => {
@@ -54,7 +54,7 @@ test("a recipe the reader wrote is never replaced; one this installer wrote is",
   fs.mkdirSync(path.join(room, "theirs"));
   assert.equal(L.mayReplace(path.join(room, "theirs")), false);
   fs.mkdirSync(path.join(room, "ours"));
-  fs.writeFileSync(path.join(room, "ours", L.MARKER), "hub-video");
+  fs.writeFileSync(path.join(room, "ours", L.MARKER), "mc-video");
   assert.equal(L.mayReplace(path.join(room, "ours")), true);
 });
 
@@ -88,23 +88,23 @@ test("Windows looks for winget's ffmpeg before the one on PATH", () => {
 });
 
 test("launchers: a shell one everywhere, and a .cmd twin on Windows", () => {
-  const unix = L.launchers("/home/r/.hub-video/app", "linux");
-  assert.deepEqual(unix.map((l) => l.name), ["hub-video"]);
-  assert.match(unix[0].body, /exec node ".*\/bin\/hub-video\.mjs" "\$@"/);
-  const win = L.launchers("C:\\Users\\r\\.hub-video\\app", "win32");
-  assert.deepEqual(win.map((l) => l.name), ["hub-video", "hub-video.cmd"]);
-  assert.match(win[1].body, /node ".*hub-video\.mjs" %\*/);
+  const unix = L.launchers("/home/r/.mc-video/app", "linux");
+  assert.deepEqual(unix.map((l) => l.name), ["mc-video"]);
+  assert.match(unix[0].body, /exec node ".*\/bin\/mc-video\.mjs" "\$@"/);
+  const win = L.launchers("C:\\Users\\r\\.mc-video\\app", "win32");
+  assert.deepEqual(win.map((l) => l.name), ["mc-video", "mc-video.cmd"]);
+  assert.match(win[1].body, /node ".*mc-video\.mjs" %\*/);
 });
 
 test("the kit's command folder is used when it exists", () => {
   const home = tmp();
   assert.equal(L.binDir(home), path.join(home, ".local", "bin"));
-  fs.mkdirSync(path.join(home, ".hub", "bin"), { recursive: true });
-  assert.equal(L.binDir(home), path.join(home, ".hub", "bin"));
+  fs.mkdirSync(path.join(home, ".godspeed", "bin"), { recursive: true });
+  assert.equal(L.binDir(home), path.join(home, ".godspeed", "bin"));
 });
 
 test("PATH comparison ignores case and a trailing slash on Windows", () => {
-  assert.equal(L.onPath("C:\\Users\\R\\.hub\\bin", "C:\\Windows;c:\\users\\r\\.hub\\bin\\", "win32"), true);
+  assert.equal(L.onPath("C:\\Users\\R\\.godspeed\\bin", "C:\\Windows;c:\\users\\r\\.godspeed\\bin\\", "win32"), true);
 });
 
 test("the HyperFrames pin is an exact tag", () => {
@@ -125,26 +125,26 @@ test("only folders with a SKILL.md count as published HyperFrames skills", () =>
 
 test("the .gitignore block is added once, rewritten in place, and leaves other lines alone", () => {
   const first = L.gitignoreBlock("node_modules/\n", [path.join("skills", "hyperframes"), path.join("skills", "media-use")]);
-  assert.match(first, /^node_modules\/\n\n# hub-video/);
-  assert.match(first, /skills\/hyperframes\/\nskills\/media-use\/\n# end hub-video\n$/);
+  assert.match(first, /^node_modules\/\n\n# mc-video/);
+  assert.match(first, /skills\/hyperframes\/\nskills\/media-use\/\n# end mc-video\n$/);
   const second = L.gitignoreBlock(first + "secrets/\n", [path.join("skills", "hyperframes")]);
-  assert.equal((second.match(/# hub-video/g) || []).length, 1);
+  assert.equal((second.match(/# mc-video/g) || []).length, 1);
   assert.doesNotMatch(second, /media-use/);
   assert.match(second, /secrets\/\n$/);
   assert.equal(L.gitignoreBlock("", []), "");
 });
 
-test("every npx call to HyperFrames becomes hub-video hyperframes, and nothing else changes", () => {
+test("every npx call to HyperFrames becomes mc-video hyperframes, and nothing else changes", () => {
   const src = "Run `npx hyperframes check`, then npx --yes hyperframes@0.8.43 render -o a.mp4 and (npx hyperframes@latest init x).\nnpx tsx build.ts\nnpx hyperframes";
   assert.equal(L.rewriteNpx(src),
-    "Run `hub-video hyperframes check`, then hub-video hyperframes render -o a.mp4 and (hub-video hyperframes init x).\nnpx tsx build.ts\nhub-video hyperframes");
+    "Run `mc-video hyperframes check`, then mc-video hyperframes render -o a.mp4 and (mc-video hyperframes init x).\nnpx tsx build.ts\nmc-video hyperframes");
   assert.equal(L.rewriteNpx("npx hyperframes-localize-fonts"), "npx hyperframes-localize-fonts");
 });
 
-test("the hub note goes after the front matter, once", () => {
+test("the mission control note goes after the front matter, once", () => {
   const md = "---\nname: hyperframes\ndescription: x\n---\n\n# HyperFrames entry point\n";
   const once = L.addHubNote(md);
-  assert.match(once, /^---\nname: hyperframes\ndescription: x\n---\n\n> \*\*In this hub\*\*/);
+  assert.match(once, /^---\nname: hyperframes\ndescription: x\n---\n\n> \*\*In this mission control\*\*/);
   assert.match(once, /# HyperFrames entry point\n$/);
   assert.equal(L.addHubNote(once), once);
 });

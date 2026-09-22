@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Burned-in captions as one fixed style.
 
-The look is defined once, in your hub's video/caption-style.json, and reused on every
+The look is defined once, in your mission control's video/caption-style.json, and reused on every
 video. There is no style picker. Change a number there and every future video changes
 with it.
 

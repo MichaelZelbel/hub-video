@@ -58,7 +58,7 @@ class Phrases(unittest.TestCase):
         self.assertEqual([x["w"] for x in captions.join_pieces(w)], [" the", " add-on."])
 
     def test_a_sentence_end_after_seven_words_does_not_stand_alone(self):
-        ph = captions.phrases_from_words(words("this clip came with the hub video add-on."), self.st)
+        ph = captions.phrases_from_words(words("this clip came with the mission control video add-on."), self.st)
         self.assertTrue(all(len(p) > 1 for p in ph), [[x[0] for x in p] for p in ph])
 
     def test_a_pause_starts_a_new_phrase(self):

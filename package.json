@@ -1,11 +1,11 @@
 {
-  "name": "hub-video",
+  "name": "mc-video",
   "version": "1.0.0",
-  "description": "Let your hub finish your videos: captions in one look, a vertical cut, and HyperFrames for animated slides and overlays. An add-on for Teach It Once.",
+  "description": "Let your mission control finish your videos: captions in one look, a vertical cut, and HyperFrames for animated slides and overlays. An add-on for Teach It Once.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "hub-video": "bin/hub-video.mjs"
+    "mc-video": "bin/mc-video.mjs"
   },
   "files": [
     "bin",
@@ -25,6 +25,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MichaelZelbel/hub-video.git"
+    "url": "https://github.com/MichaelZelbel/mc-video.git"
   }
 }

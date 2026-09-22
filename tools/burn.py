@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Captions and a vertical cut, one command each. Started by `hub-video`, which passes
-the ffmpeg to use and your hub's style file in the environment.
+"""Captions and a vertical cut, one command each. Started by `mc-video`, which passes
+the ffmpeg to use and your mission control's style file in the environment.
 
     burn.py captions clip.mp4             -> clip.captioned.mp4
     burn.py captions clip.mp4 --ass-only  -> clip.ass, nothing rendered
@@ -25,9 +25,9 @@ import captions  # noqa: E402
 
 
 def ffmpeg():
-    exe = os.environ.get("HUB_VIDEO_FFMPEG") or shutil.which("ffmpeg")
+    exe = os.environ.get("GODSPEED_VIDEO_FFMPEG") or shutil.which("ffmpeg")
     if not exe:
-        sys.exit("error: no ffmpeg found. Run `hub-video setup` again; it says how to get one.")
+        sys.exit("error: no ffmpeg found. Run `mc-video setup` again; it says how to get one.")
     return exe
 
 
@@ -129,7 +129,7 @@ def cmd_captions(a, src=None):
     w, h, dur, has_audio = probe(ff, src)
     if not has_audio and not a.words:
         sys.exit(f"error: {src} has no sound, so there is nothing to caption.")
-    st = captions.load_style(os.environ.get("HUB_VIDEO_STYLE") or None, w, h)
+    st = captions.load_style(os.environ.get("GODSPEED_VIDEO_STYLE") or None, w, h)
     stem = os.path.splitext(src)[0]
     words_file = stem + ".words.json"
     if a.words:
@@ -202,7 +202,7 @@ def cmd_vertical(a):
 
 
 def main():
-    ap = argparse.ArgumentParser(prog="hub-video")
+    ap = argparse.ArgumentParser(prog="mc-video")
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name in ("captions", "vertical"):
         p = sub.add_parser(name)
