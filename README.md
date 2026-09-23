@@ -1,6 +1,6 @@
 # mc-video
 
-**Let your mission control finish your videos.** An add-on for [the mission control](https://github.com/MichaelZelbel/teach-it-once-kit) from [*Teach It Once*](https://leanpub.com/teachitonce), Chapter 35.
+**Let your mission control finish your videos.** An add-on for [the mission control](https://github.com/MichaelZelbel/godspeed-mission-control) from [*Teach It Once*](https://leanpub.com/teachitonce), Chapter 35.
 You record and cut. Then you tell your assistant "caption this and make a vertical version",
 or "put a title card in front of it", and it does the finishing on your own computer: captions
 in your one look, a 9:16 cut for Reels, TikTok and Shorts, and animated slides and overlays
