@@ -21,20 +21,20 @@ export function nodeMajor(version = process.versions.node) {
 
 // Where the mission control is, in the order a reader would expect: said on the command line, recorded
 // by the kit's installer, the folder you are standing in, then the book's default.
-export function findHub({ arg, cwd = process.cwd(), userHome = os.homedir() } = {}) {
-  const looksLikeHub = (d) => d && fs.existsSync(path.join(d, "AGENTS.md"));
-  if (arg) return looksLikeHub(path.resolve(arg)) ? path.resolve(arg) : null;
+export function findGodspeed({ arg, cwd = process.cwd(), userHome = os.homedir() } = {}) {
+  const looksLikeGodspeed = (d) => d && fs.existsSync(path.join(d, "AGENTS.md"));
+  if (arg) return looksLikeGodspeed(path.resolve(arg)) ? path.resolve(arg) : null;
   const envFile = path.join(userHome, ".godspeed", "device.env");
   if (fs.existsSync(envFile)) {
     const m = fs.readFileSync(envFile, "utf8").match(/^\s*GODSPEED_DIR=(.+)$/m);
     if (m) {
       const d = m[1].trim().replace(/^["']|["']$/g, "");
-      if (looksLikeHub(d)) return d;
+      if (looksLikeGodspeed(d)) return d;
     }
   }
-  if (looksLikeHub(cwd)) return cwd;
+  if (looksLikeGodspeed(cwd)) return cwd;
   const dflt = path.join(userHome, "godspeed");
-  return looksLikeHub(dflt) ? dflt : null;
+  return looksLikeGodspeed(dflt) ? dflt : null;
 }
 
 function countRecipes(dir) {
@@ -201,7 +201,7 @@ export const GODSPEED_NOTE = `> **In this mission control** (added by mc-video, 
 > too before you start.
 `;
 
-export function addHubNote(skillMd) {
+export function addGodspeedNote(skillMd) {
   if (skillMd.includes("**In this mission control** (added by mc-video")) return skillMd;
   const m = skillMd.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
   const head = m ? m[0] : "";

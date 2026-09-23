@@ -173,7 +173,7 @@ function adaptRecipe(dir) {
     else if (e.name.endsWith(".md")) {
       const before = fs.readFileSync(f, "utf8");
       let after = L.rewriteNpx(before);
-      if (e.name === "SKILL.md") after = L.addHubNote(after);
+      if (e.name === "SKILL.md") after = L.addGodspeedNote(after);
       if (after !== before) fs.writeFileSync(f, after);
     }
   }
@@ -382,7 +382,7 @@ function stepProof(cfg) {
 async function setup(flags) {
   console.log(`mc-video ${VERSION}: let your mission control finish your videos`);
   if (L.nodeMajor() < 22) fail(`this needs Node.js 22 or newer, and this computer has ${process.versions.node}. Update Node, then run this again.`);
-  const godspeed = L.findHub({ arg: flags.godspeed });
+  const godspeed = L.findGodspeed({ arg: flags.godspeed });
   if (!godspeed) fail(flags.godspeed
     ? `${flags.godspeed} does not look like a mission control (there is no AGENTS.md in it).`
     : "could not find your mission control. Run this again from inside your mission control folder, or add --godspeed <folder>.");

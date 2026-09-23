@@ -16,8 +16,8 @@ const godspeedAt = (d) => {
 test("the mission control named on the command line wins, and a folder without AGENTS.md is refused", () => {
   const home = tmp();
   const godspeed = godspeedAt(path.join(home, "elsewhere"));
-  assert.equal(L.findHub({ arg: godspeed, userHome: home, cwd: home }), godspeed);
-  assert.equal(L.findHub({ arg: home, userHome: home, cwd: home }), null);
+  assert.equal(L.findGodspeed({ arg: godspeed, userHome: home, cwd: home }), godspeed);
+  assert.equal(L.findGodspeed({ arg: home, userHome: home, cwd: home }), null);
 });
 
 test("the mission control recorded by the kit comes before the current folder", () => {
@@ -26,15 +26,15 @@ test("the mission control recorded by the kit comes before the current folder", 
   const here = godspeedAt(path.join(home, "here"));
   fs.mkdirSync(path.join(home, ".godspeed"));
   fs.writeFileSync(path.join(home, ".godspeed", "device.env"), `GODSPEED_PROMPT_SOURCES=hermes\nGODSPEED_DIR=${recorded}\n`);
-  assert.equal(L.findHub({ userHome: home, cwd: here }), recorded);
+  assert.equal(L.findGodspeed({ userHome: home, cwd: here }), recorded);
 });
 
 test("without a record, the current folder, then ~/godspeed", () => {
   const home = tmp();
   const here = godspeedAt(path.join(home, "here"));
-  assert.equal(L.findHub({ userHome: home, cwd: here }), here);
+  assert.equal(L.findGodspeed({ userHome: home, cwd: here }), here);
   const dflt = godspeedAt(path.join(home, "godspeed"));
-  assert.equal(L.findHub({ userHome: home, cwd: home }), dflt);
+  assert.equal(L.findGodspeed({ userHome: home, cwd: home }), dflt);
 });
 
 test("recipes go to the visible skills room unless the mission control only has .claude/skills", () => {
@@ -143,10 +143,10 @@ test("every npx call to HyperFrames becomes mc-video hyperframes, and nothing el
 
 test("the mission control note goes after the front matter, once", () => {
   const md = "---\nname: hyperframes\ndescription: x\n---\n\n# HyperFrames entry point\n";
-  const once = L.addHubNote(md);
+  const once = L.addGodspeedNote(md);
   assert.match(once, /^---\nname: hyperframes\ndescription: x\n---\n\n> \*\*In this mission control\*\*/);
   assert.match(once, /# HyperFrames entry point\n$/);
-  assert.equal(L.addHubNote(once), once);
+  assert.equal(L.addGodspeedNote(once), once);
 });
 
 test("commands that leave the computer are refused", () => {
