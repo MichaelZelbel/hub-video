@@ -9,17 +9,10 @@ import path from "node:path";
 export const HYPERFRAMES_TAG = "v0.8.43";
 export const HYPERFRAMES_VERSION = HYPERFRAMES_TAG.slice(1);
 export const MARKER = ".installed-by-mc-video";
-// Never one name: until 2026-09-22 this add-on was hub-video. Its record was ~/.hub-video, it read
-// HUB_DIR from ~/.hub/device.env, and it marked its recipes with the marker below. A machine set
-// up then still has only those, so each is read when the new one is absent.
-export const OLD_MARKER = ".installed-by-hub-video";
 export const RECIPE = "video-finishing";
 
 export function home() {
-  const set = process.env.GODSPEED_VIDEO_HOME || process.env.HUB_VIDEO_HOME;
-  if (set) return set;
-  const now = path.join(os.homedir(), ".mc-video"), before = path.join(os.homedir(), ".hub-video");
-  return !fs.existsSync(now) && fs.existsSync(before) ? before : now;
+  return process.env.GODSPEED_VIDEO_HOME || path.join(os.homedir(), ".mc-video");
 }
 
 export function nodeMajor(version = process.versions.node) {
@@ -31,10 +24,9 @@ export function nodeMajor(version = process.versions.node) {
 export function findHub({ arg, cwd = process.cwd(), userHome = os.homedir() } = {}) {
   const looksLikeHub = (d) => d && fs.existsSync(path.join(d, "AGENTS.md"));
   if (arg) return looksLikeHub(path.resolve(arg)) ? path.resolve(arg) : null;
-  for (const [envFile, key] of [[path.join(userHome, ".godspeed", "device.env"), "GODSPEED_DIR"],
-                                [path.join(userHome, ".hub", "device.env"), "HUB_DIR"]]) {
-    if (!fs.existsSync(envFile)) continue;
-    const m = fs.readFileSync(envFile, "utf8").match(new RegExp(`^\\s*${key}=(.+)$`, "m"));
+  const envFile = path.join(userHome, ".godspeed", "device.env");
+  if (fs.existsSync(envFile)) {
+    const m = fs.readFileSync(envFile, "utf8").match(/^\s*GODSPEED_DIR=(.+)$/m);
     if (m) {
       const d = m[1].trim().replace(/^["']|["']$/g, "");
       if (looksLikeHub(d)) return d;
@@ -65,7 +57,7 @@ export function skillsRoom(godspeed) {
 // this installer before. A recipe the reader wrote under the same name is never replaced.
 export function mayReplace(dir) {
   if (!fs.existsSync(dir)) return true;
-  return fs.existsSync(path.join(dir, MARKER)) || fs.existsSync(path.join(dir, OLD_MARKER));
+  return fs.existsSync(path.join(dir, MARKER));
 }
 
 // An ffmpeg is good enough when it can write H.264 and draw subtitles. The Windows Store
